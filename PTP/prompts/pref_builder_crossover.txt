@@ -1,0 +1,25 @@
+Combine the weighting mechanisms from PARENTS_JSON into one preference-weighting candidate. Preserve the fixed pair topology.
+
+Return only one valid JSON object with this schema:
+{
+  "name": "short_unique_name",
+  "intuition": "short explanation",
+  "hyperparams": {
+    "mechanism_families": ["cost_calibrated"],
+    "geometry": "dense_all_pairs",
+    "cap": "uncapped_full",
+    "weighting": "...",
+    "constraint": "..."
+  },
+  "operators_used": ["..."],
+  "implementation_hint": {
+    "expects": ["objective", "log_prob"],
+    "returns": "PrefBatch",
+    "mode": "pairwise"
+  },
+  "code": "def generated_builder(feature_cache, extra):\n    ...\n"
+}
+
+The builder must enumerate every ordered unequal-objective pair exactly once using the fixed pair_idx topology. It may only search the finite nonnegative one-dimensional weight tensor. Individual weights may be exactly zero, but every instance must have a strictly positive total weight and a weight coefficient of variation greater than 0.1. Return raw weights without per-instance sum or mean normalization. Do not filter, sample, cap, reorder, duplicate, or add pairs. Read solution features and set statistics from RUNTIME_CONTEXT_JSON. Use only ops.* for mathematical operations and tensor reduction; the fixed topology may use mask.nonzero(as_tuple=True). Do not use imports, torch, F, other tensor methods, randomness, filesystem, network, global state, or Python loops over pair tensors.
+
+The mechanism_families array must list every applicable mechanism family using only cost_calibrated, rank_based, and pairwise_margin. List multiple values when more than one family applies; the search assigns one of them randomly. It must contain at least one value.

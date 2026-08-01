@@ -1,0 +1,26 @@
+Add an explicit numerical stability constraint to PARENT_JSON. Change constraint.
+
+Return only one valid JSON object with this schema:
+{
+  "name": "short_unique_name",
+  "intuition": "short explanation",
+  "pseudocode": "high-level expression",
+  "hyperparams": {
+    "mechanism_families": ["cost_calibrated"],
+    "signal": "...",
+    "link": "...",
+    "aggregation": "elementwise_pair",
+    "constraint": "..."
+  },
+  "operators_used": ["..."],
+  "implementation_hint": {
+    "expects": ["log_prob_w", "log_prob_l", "..."],
+    "returns": "per_pair",
+    "mode": "pairwise"
+  },
+  "code": "def generated_loss(batch, model_output, extra):\n    ...\n"
+}
+
+The candidate must return one finite value for every input pair. It must read log_prob_w, log_prob_l, and at least one of cost_a, cost_b, cost_gap, delta_z, delta_rank, delta_regret, advantage_w, advantage_l, or advantage_gap. It must not read weight or instance_idx and must not aggregate across pairs. Use only vectorized tensor arithmetic and these operators through ops: logsigmoid, softplus, sigmoid, exp, log, abs, tanh, relu, clamp, ones_like, zeros_like, sqrt, add, sub, mul, div, neg, maximum, minimum, sign. Do not use imports, filesystem, network, randomness, global state, mean, sum, normalization, stacking, concatenation, or tensor reductions.
+
+The mechanism_families array must list every applicable mechanism family using only cost_calibrated, rank_based, and pairwise_margin. List multiple values when more than one family applies; the search assigns one of them randomly. It must include the parent assignment shown as metrics.mechanism_family in PARENT_JSON.

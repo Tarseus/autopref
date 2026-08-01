@@ -1,0 +1,110 @@
+output_root: runs/autopref_tsp20
+
+common:
+  seed: 1234
+  env_name: tsp
+  generator_params:
+    num_loc: 20
+  policy_name: pomo
+  policy_kwargs:
+    embed_dim: 128
+    num_encoder_layers: 6
+    qkv_dim: 16
+    num_heads: 8
+    feedforward_hidden: 512
+    tanh_clipping: 50
+  rollout_strategy: auto
+  operator_whitelist:
+    - logsigmoid
+    - softplus
+    - sigmoid
+    - exp
+    - log
+    - abs
+    - tanh
+    - relu
+    - clamp
+    - ones_like
+    - zeros_like
+    - sqrt
+    - pow
+    - sum
+    - mean
+    - add
+    - sub
+    - mul
+    - div
+    - neg
+    - maximum
+    - minimum
+    - sign
+  learning_rate: 0.0003
+  weight_decay: 0.000001
+  device: cuda
+  devices: [cuda:0]
+  train_problem_size: 20
+  valid_problem_sizes: [20]
+  train_batch_size: 32
+  validation_batch_size: 32
+  num_validation_episodes: 128
+  f1_steps: 32
+  hf_epochs: 1
+  hf_instances_per_epoch: 1024
+  generations: 10
+  pairing_budget_per_gen: 16
+  pop_f: 16
+  pop_g: 16
+  elite_f: 8
+  elite_g: 8
+  stage0_sandbox_timeout_s: 25
+  llm_prompts:
+    loss_generation: PTP/prompts/free_loss_generation.txt
+    loss_crossover: PTP/prompts/free_loss_crossover.txt
+    loss_m2: PTP/prompts/free_loss_m2.txt
+    loss_paradigm_shift: PTP/prompts/free_loss_paradigm_shift.txt
+    loss_structure_shift: PTP/prompts/free_loss_structure_shift.txt
+    loss_constraint_inject: PTP/prompts/free_loss_constraint_inject.txt
+    builder_generation: PTP/prompts/pref_builder_generation.txt
+    builder_crossover: PTP/prompts/pref_builder_crossover.txt
+    builder_m2: PTP/prompts/pref_builder_m2.txt
+    builder_paradigm_shift: PTP/prompts/pref_builder_paradigm_shift.txt
+    builder_structure_shift: PTP/prompts/pref_builder_structure_shift.txt
+    builder_constraint_inject: PTP/prompts/pref_builder_constraint_inject.txt
+
+stage1:
+  loss_llm:
+    parent_p: 4
+    operator_bank:
+      init:
+        - {name: GEN, count: 4}
+        - {name: PARADIGM_SHIFT, count: 6}
+        - {name: STRUCTURE_SHIFT, count: 4}
+        - {name: CONSTRAINT_INJECT, count: 4}
+        - {name: XOVER, count: 2}
+        - {name: TUNE, count: 2}
+      per_gen:
+        - {name: GEN, count: 4}
+        - {name: PARADIGM_SHIFT, count: 6}
+        - {name: STRUCTURE_SHIFT, count: 4}
+        - {name: CONSTRAINT_INJECT, count: 4}
+        - {name: XOVER, count: 2}
+        - {name: TUNE, count: 2}
+
+stage2:
+  builder_llm:
+    parent_p: 4
+    operator_bank:
+      init:
+        - {name: GEN, count: 4}
+        - {name: PARADIGM_SHIFT, count: 6}
+        - {name: STRUCTURE_SHIFT, count: 4}
+        - {name: CONSTRAINT_INJECT, count: 4}
+        - {name: XOVER, count: 2}
+        - {name: TUNE, count: 2}
+      per_gen:
+        - {name: GEN, count: 4}
+        - {name: PARADIGM_SHIFT, count: 6}
+        - {name: STRUCTURE_SHIFT, count: 4}
+        - {name: CONSTRAINT_INJECT, count: 4}
+        - {name: XOVER, count: 2}
+        - {name: TUNE, count: 2}
